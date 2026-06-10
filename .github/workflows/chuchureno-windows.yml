@@ -69,8 +69,11 @@ jobs:
           # ID/릴레이 서버 + 공개키
           sed -i 's/rs-ny.rustdesk.com/remote.chuchureno.co.kr/' $CFG
           sed -i 's|OeVuKk5nlHiXp+APNn0Y3pC1Iwpwn44JGqrQCsWqmBw=|n9lj8vbt1wLG8HDnoXwipGDCRPzVBJAvFoB6TweF1ng=|' $CFG
-          # api-server 기본 폴백(대시보드 자동 등록 + "자신만의 서버" 메시지 제거): admin.rustdesk.com → 우리 서버
+          # api-server 기본 폴백(대시보드 자동 등록): admin.rustdesk.com → 우리 서버
           sed -i 's|https://admin.rustdesk.com|https://remote.chuchureno.co.kr|' src/common.rs
+          # using_public_server()를 항상 false로: "자신만의 서버를 설정해주세요" 메시지 제거
+          # (하드코딩 서버는 custom 설정으로 인정 안 되어 공용서버로 오판되는 문제)
+          sed -i 's|crate::get_custom_rendezvous_server(get_option("custom-rendezvous-server")).is_empty()|false|' src/common.rs
           # 한국어 UI 텍스트: 번역값의 RustDesk → ChuchuReno (translate 키는 보존)
           sed -i 's/\(, "[^"]*\)RustDesk/\1ChuchuReno/g' src/lang/ko.rs
           echo "--- config.rs (서버/앱명) ---"
