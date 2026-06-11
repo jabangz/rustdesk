@@ -80,7 +80,26 @@ jobs:
           # → 우리 도메인은 항상 TLS(443)이므로 도메인이면 무조건 wss 사용
           # (Settings>Network>"Use WebSocket" 토글 시 V3 등 UDP차단 환경 우회용)
           WS=libs/hbb_common/src/websocket.rs
-          perl -0777 -pi -e 's/let protocol = if is_domain \{\n        let api_server = Config::get_option\("api-server"\);\n        if api_server.starts_with\("https"\) \{\n            "wss"\n        \} else \{\n            "ws"\n        \}\n    \} else \{\n        "ws"\n    \};/let protocol = if is_domain { "wss" } else { "ws" };/' $WS
+          python3 - <<'EOF'
+          import re
+          f = "libs/hbb_common/src/websocket.rs"
+          s = open(f, encoding="utf-8").read()
+          old = '''    let protocol = if is_domain {
+                  let api_server = Config::get_option("api-server");
+                  if api_server.starts_with("https") {
+                      "wss"
+                  } else {
+                      "ws"
+                  }
+              } else {
+                  "ws"
+              };'''
+          new = 'let protocol = if is_domain { "wss" } else { "ws" };'
+          assert old in s, "protocol pattern not found"
+          s = s.replace(old, new, 1)
+          open(f, "w", encoding="utf-8").write(s)
+          print("patched check_ws protocol -> always wss for domain")
+          EOF
           echo "--- config.rs (서버/앱명) ---"
           grep -n 'ChuchuReno\|chuchureno' $CFG
           echo "--- common.rs (api-server) ---"
